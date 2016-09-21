@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dung</title>
+    <style>
+      body {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+      }
+
+      #dungeon {
+        height: 256px;
+        width: 256px;
+        background: black;
+        margin: auto;
+        position: relative;
+      }
+
+      #dungeon .block {
+
+      }
+
+      #dungeon .block:hover {
+        cursor: pointer;
+      }
+
+      #dungeon .ground:hover {
+        background: #555555 !important;
+      }
+
+      #dungeon .ground_2:hover {
+        background: #365768 !important;
+      }
+
+      #dungeon .lava:hover {
+        background: #dF4712 !important;
+      }
+
+      #dungeon .dirt:hover {
+        background: #694538 !important;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <div id="dungeon"></div>
+    <script type="text/javascript" src="game.js"></script>
+  </body>
+</html>
