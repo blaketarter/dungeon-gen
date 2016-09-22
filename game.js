@@ -1,3 +1,5 @@
+console.time('entire thing');
+
 let dung = {
   tiles: [],
   rooms: [],
@@ -19,7 +21,8 @@ const TOTAL_PIXELS = 256;
 const SPRITE_SIZE = 8;
 
 // const TOTAL_PIXELS = 1024;
-// const SPRITE_SIZE = 8;
+// const TOTAL_PIXELS = 2048;
+// const SPRITE_SIZE = 4;
 
 const OBJ_CHANCE = 0.02;
 
@@ -60,6 +63,8 @@ const blockDesc = {
 const roomTypes = ['CHEST', 'BOSS', 'STAIRS'];
 
 function generateMap() {
+  console.time('generate map');
+
   const rowLength = TOTAL_PIXELS / SPRITE_SIZE;
   const blocks = rowLength ** 2;
 
@@ -366,6 +371,8 @@ function generateMap() {
   dung.rooms = rooms;
   dung.tiles = dungeon;
 
+  console.timeEnd('generate map');
+
   return dungeon;
 }
 
@@ -393,6 +400,8 @@ function makeBlock(blockOpts) {
 }
 
 function render() {
+  console.time('render');
+
   while (mapNode.firstChild) {
     mapNode.removeChild(mapNode.firstChild);
   }
@@ -400,6 +409,9 @@ function render() {
   dung.tiles.forEach((block) => {
     mapNode.appendChild(makeBlock(block));
   });
+
+  console.timeEnd('render');
+  console.timeEnd('entire thing');  
 }
 
 function tick() {}
