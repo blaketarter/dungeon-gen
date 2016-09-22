@@ -7,7 +7,7 @@ let player = {};
 let game = {
   over: 0,
   score: 0,
-  level: 2,
+  level: 10,
 };
 
 function randomBetween(min,max) {
@@ -31,6 +31,9 @@ const blockDesc = {
   GROUND_2: {
     color: '#566778',
   },
+  BURNT_GROUND: {
+    color: '#555555',
+  },
   LAVA: {
     color: '#FF5722',
   },
@@ -39,6 +42,9 @@ const blockDesc = {
   },
   WALL: {
     color: '#333333',
+  },
+  WALL_2: {
+    color: '#224444',
   },
   ROOM_FLOOR: {
     color: '#566778',
@@ -106,9 +112,14 @@ function generateMap() {
     let directions = [1, rowLength, -1, -rowLength];
     let stretch = -1;
     let currentIndex = startIndex;
+    let blockType = 'BURNT_GROUND';
 
     if (Math.random() > 0.5) {
       directions = directions.reverse();
+    }
+
+    if (Math.random() < (0.05 * (game.level + 1))) {
+      blockType = 'LAVA';
     }
 
     while (size > 0) {
@@ -119,7 +130,7 @@ function generateMap() {
       for (let i = 0, ii = run; i < ii; i++) {
 
         if ((size > 0) && dungeon[currentIndex]) {
-          dungeon[currentIndex].blockType = 'LAVA';
+          dungeon[currentIndex].blockType = blockType;
           currentIndex += direction;
         }
 
@@ -154,7 +165,7 @@ function generateMap() {
       }
 
       dungeon[wallIndex].isWall = true;
-      dungeon[wallIndex].blockType = 'WALL';
+      dungeon[wallIndex].blockType = 'WALL_2';
       wallIndex += direction;
     }
   }
@@ -256,9 +267,11 @@ function generateMap() {
     }
 
     if (roomIntersects) {
-      return generateRoom(Object.assign({}, roomOpts, {
+      return generateRoom({
         startIndex: Math.floor(Math.random() * dungeon.length),
-      }), ++regenAttempt);
+        height: randomBetween(5, (10 - regenAttempt)),
+        width: randomBetween(5, (10 - regenAttempt)),
+      }, ++regenAttempt);
     }
 
     let floorIndex = (wallIndex + 1) - rowLength;
@@ -334,9 +347,13 @@ function generateMap() {
 
   generateFloor();
   addFloorFlavor();
-  // generateWalls();
 
   let numberOfRoomAttempts = game.level + 1;
+
+  for (let i = 0, ii = numberOfRoomAttempts; i < ii; i++) {
+    generateWalls();
+  }
+  
 
   for (let i = 0, ii = numberOfRoomAttempts; i < ii; i++) {
     generateRoom({
