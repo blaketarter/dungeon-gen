@@ -16,7 +16,11 @@ function randomBetween(min,max) {
 
 const TOTAL_PIXELS = 256;
 const SPRITE_SIZE = 8;
-const OBJ_CHANCE = 0.05;
+
+// const TOTAL_PIXELS = 1024;
+// const SPRITE_SIZE = 8;
+
+const OBJ_CHANCE = 0.02;
 
 const groundTypes = ['GROUND', /*'GROUND_2',*/ 'LAVA', /*'DIRT'*/];
 const blockDesc = {
@@ -97,11 +101,53 @@ function generateMap() {
     }
   }
 
+  function makeLavaPool(size, startIndex) {
+    let directions = [1, rowLength, -1, -rowLength];
+    let stretch = -1;
+    let currentIndex = startIndex;
+
+    // console.log('start index ' + startIndex);
+
+    while (size > 0) {
+      let run = (stretch < 1) ? 1 : stretch;
+      let direction = directions[0];
+      directions.push(directions.shift());
+
+      // console.log('while itr');
+      // console.log('run ' + run);
+      // console.log('size ' + size);
+
+      for (let i = 0, ii = run; i < ii; i++) {
+        // console.log('for itr');
+
+        if ((size > 0) && dungeon[currentIndex]) {
+          // console.log('currentIndex ' + currentIndex);
+          dungeon[currentIndex].blockType = 'LAVA';
+          currentIndex += direction;
+        } else {
+          // console.log('else size ' + size);
+          // console.log('else i' + i);
+          // console.log('else ii ' + ii);
+        }
+
+        // console.log('here');
+        size--;
+      }
+
+      // console.log('size '+ size);
+      stretch++;
+
+      // break;
+    }
+  }
+
   function addFloorFlavor() {
     // todo add different size flavor patches
     for (let i = 0, ii = blocks; i < ii; i++) {
       if (Math.random() <= OBJ_CHANCE) {
-        dungeon[i].blockType = groundTypes[Math.floor(Math.random() * groundTypes.length)];
+        let poolSize = randomBetween(1, 20);
+        // console.log('poolSize ' + poolSize);
+        makeLavaPool(poolSize, i);
       }
     }
   }
@@ -147,6 +193,24 @@ function generateMap() {
         otherRoom.top > thisRoom.bottom ||
         otherRoom.bottom < thisRoom.top
       );
+    }
+
+    function arrayDifference(arr1, arr2) {
+      return arr1.filter(i => arr2.indexOf(i) < 0);
+    }
+
+    function findCornerWalls(room) {
+      let corners = [];
+
+      let height = room.height;
+      let width = room.width;
+      
+      corners.push(room.walls[0]);
+      corners.push(room.walls[width]);
+      corners.push(room.walls[width + height]);
+      corners.push(room.walls[width + height + width]);
+
+      return corners;
     }
 
     // too close to Right check
@@ -254,15 +318,18 @@ function generateMap() {
     // place CHEST
     // todo put in middle
     if (roomOpts.floors.length) {
-      roomOpts.chest = roomOpts.floors[Math.floor(Math.random() * roomOpts.floors.length)];
+      // roomOpts.chest = roomOpts.floors[Math.floor(Math.random() * roomOpts.floors.length)];
+      roomOpts.chest = roomOpts.floors[Math.ceil(roomOpts.floors.length / 2)];
       roomOpts.chest.blockType = 'CHEST';
     }
 
     // place door
-    // todo make sure its not on corner
     // todo make sure to remove all lava directly in front of door
-    if (roomOpts.walls.length) {
-      roomOpts.door = roomOpts.walls[Math.floor(Math.random() * roomOpts.walls.length)];
+    let corners = findCornerWalls(roomOpts);
+    let possibleDoors = arrayDifference(roomOpts.walls, corners);
+
+    if (possibleDoors.length) {
+      roomOpts.door = possibleDoors[Math.floor(Math.random() * possibleDoors.length)];
       roomOpts.door.isWall = false;
       roomOpts.door.isDoor = true;
       roomOpts.door.doorID = roomOpts.roomID;
