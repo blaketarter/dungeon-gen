@@ -7,7 +7,7 @@ let player = {};
 let game = {
   over: 0,
   score: 0,
-  level: 0,
+  level: 2,
 };
 
 function randomBetween(min,max) {
@@ -15,6 +15,7 @@ function randomBetween(min,max) {
 }
 
 const TOTAL_PIXELS = 256;
+// const TOTAL_PIXELS = 128;
 const SPRITE_SIZE = 8;
 
 // const TOTAL_PIXELS = 1024;
@@ -106,46 +107,34 @@ function generateMap() {
     let stretch = -1;
     let currentIndex = startIndex;
 
-    // console.log('start index ' + startIndex);
+    if (Math.random() > 0.5) {
+      directions = directions.reverse();
+    }
 
     while (size > 0) {
       let run = (stretch < 1) ? 1 : stretch;
       let direction = directions[0];
       directions.push(directions.shift());
 
-      // console.log('while itr');
-      // console.log('run ' + run);
-      // console.log('size ' + size);
-
       for (let i = 0, ii = run; i < ii; i++) {
-        // console.log('for itr');
 
         if ((size > 0) && dungeon[currentIndex]) {
-          // console.log('currentIndex ' + currentIndex);
           dungeon[currentIndex].blockType = 'LAVA';
           currentIndex += direction;
-        } else {
-          // console.log('else size ' + size);
-          // console.log('else i' + i);
-          // console.log('else ii ' + ii);
         }
 
-        // console.log('here');
         size--;
       }
 
-      // console.log('size '+ size);
       stretch++;
-
-      // break;
     }
   }
 
   function addFloorFlavor() {
     // todo add different size flavor patches
     for (let i = 0, ii = blocks; i < ii; i++) {
-      if (Math.random() <= OBJ_CHANCE) {
-        let poolSize = randomBetween(1, 20);
+      if (Math.random() <= (OBJ_CHANCE * (game.level + 1))) {
+        let poolSize = randomBetween(1, (game.level + 5));
         // console.log('poolSize ' + poolSize);
         makeLavaPool(poolSize, i);
       }
@@ -241,6 +230,9 @@ function generateMap() {
 
     rowNumber = Math.floor(wallIndex / rowLength);
 
+    roomOpts.originalStartIndex = roomOpts.startIndex;    
+    roomOpts.startIndex = wallIndex;
+
     roomOpts.location = {
       top: rowNumber - roomOpts.height - 1,
       left: columnNumber,
@@ -264,9 +256,6 @@ function generateMap() {
     }
 
     if (roomIntersects) {
-
-      console.log('regen attemp ' + regenAttempt);
-
       return generateRoom(Object.assign({}, roomOpts, {
         startIndex: Math.floor(Math.random() * dungeon.length),
       }), ++regenAttempt);
@@ -316,11 +305,13 @@ function generateMap() {
     }
 
     // place CHEST
-    // todo put in middle
     if (roomOpts.floors.length) {
-      // roomOpts.chest = roomOpts.floors[Math.floor(Math.random() * roomOpts.floors.length)];
-      roomOpts.chest = roomOpts.floors[Math.ceil(roomOpts.floors.length / 2)];
-      roomOpts.chest.blockType = 'CHEST';
+      let chestIndex = (roomOpts.startIndex + (Math.floor(roomOpts.width / 2) - (Math.floor(roomOpts.height / 2) * rowLength)));
+
+      if (dungeon[chestIndex]) {
+        roomOpts.chest = dungeon[chestIndex];
+        roomOpts.chest.blockType = 'CHEST';
+      }
     }
 
     // place door
@@ -345,29 +336,15 @@ function generateMap() {
   addFloorFlavor();
   // generateWalls();
 
-  generateRoom({
-    startIndex: Math.floor(Math.random() * dungeon.length),
-    height: randomBetween(5, 10),
-    width: randomBetween(5, 10),
-  });
+  let numberOfRoomAttempts = game.level + 1;
 
-  generateRoom({
-    startIndex: Math.floor(Math.random() * dungeon.length),
-    height: randomBetween(5, 10),
-    width: randomBetween(5, 10),
-  });
-
-  generateRoom({
-    startIndex: Math.floor(Math.random() * dungeon.length),
-    height: randomBetween(5, 10),
-    width: randomBetween(5, 10),
-  });
-
-  generateRoom({
-    startIndex: Math.floor(Math.random() * dungeon.length),
-    height: randomBetween(5, 10),
-    width: randomBetween(5, 10),
-  });
+  for (let i = 0, ii = numberOfRoomAttempts; i < ii; i++) {
+    generateRoom({
+      startIndex: Math.floor(Math.random() * dungeon.length),
+      height: randomBetween(5, 10),
+      width: randomBetween(5, 10),
+    });
+  }
 
   dung.rooms = rooms;
   dung.tiles = dungeon;
