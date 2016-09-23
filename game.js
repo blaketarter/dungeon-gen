@@ -9,7 +9,7 @@ let player = {};
 let game = {
   over: 0,
   score: 0,
-  level: 1,
+  level: 10,
 };
 
 function randomBetween(min,max) {
@@ -29,24 +29,29 @@ const OBJ_CHANCE = 0.02;
 const groundTypes = ['GROUND', /*'GROUND_2',*/ 'LAVA', /*'DIRT'*/];
 const blockDesc = {
   GROUND: {
-    color: '#666666',
+    color: '#999999',
     background: '#222222',
-    char: '%'
+    char: '%',
+    isBold: false,
   },
   GROUND_2: {
     color: '#566778',
     background: '#222222',
-    char: '%'
+    char: '%',
+    isBold: false,
   },
   BURNT_GROUND: {
-    color: '#555555',
+    color: '#666666',
     background: '#222222',
-    char: '@'
+    char: '@',
+    isBold: false,
   },
   LAVA: {
     color: '#FF5722',
     background: '#FF6655',
-    char: '~'
+    char: '~',
+    altChar: '-',
+    isBold: false,
   },
   DIRT: {
     color: '#795548',
@@ -54,32 +59,63 @@ const blockDesc = {
   },
   WALL: {
     color: '#333333',
-    background: '#222222',
-    char: '#'
+    background: '#999999',
+    char: '#',
+    isBold: true,
   },
   WALL_2: {
     color: '#224444',
-    background: '#222222',
-    char: '#'
+    background: '#999999',
+    char: '#',
+    isBold: true,
   },
   ROOM_FLOOR: {
     color: '#566778',
     background: '#222222',
-    char: '*'
+    char: '*',
+    isBold: true,
   },
   DOOR: {
     color: '#795548',
     background: '#222222',
-    char: '^'
+    char: '^',
+    isBold: true,
   },
   CHEST: {
     color: '#FB0',
     background: '#222222',
-    char: '='
+    char: '=',
+    isBold: true,
+  },
+  PLAYER: {
+    color: 'green',
+    // char: '⚲',
+    char: '&#9906;',
+    isBold: true
   }
 };
 
 const roomTypes = ['CHEST', 'BOSS', 'STAIRS'];
+
+function placePlayer(dungeon, retryAttempts) {
+  if (retryAttempts > 20 || !dungeon) {
+    console.warn('Figure out a better system to place the player.');
+  } else {
+    let possiblePlace = dungeon[Math.floor(Math.random() * dungeon.length)];
+
+    console.log(possiblePlace);
+    console.log(dungeon);
+
+    if (!possiblePlace || possiblePlace.isWall || possiblePlace.isDoor || possiblePlace.blockType === 'LAVA' || possiblePlace.blockType === 'GROUND_2') {
+      return placePlayer(dungeon, ++retryAttempts);
+    } else {
+      possiblePlace.occupied = true;
+      possiblePlace.occupent = 'PLAYER';
+
+      return possiblePlace;
+    }
+  }
+}
 
 function generateMap() {
   console.time('generate map');
@@ -111,6 +147,7 @@ function generateMap() {
     isDoor: false,
     doorID: null,
     isWall: false,
+    state: 0,
   };
 
   function generateFloor() {
@@ -390,6 +427,8 @@ function generateMap() {
   dung.rooms = rooms;
   dung.tiles = dungeon;
 
+  placePlayer(dungeon, 0);
+
   console.timeEnd('generate map');
 
   return dungeon;
@@ -412,15 +451,39 @@ function makeBlock(blockOpts) {
   block.style.width = SPRITE_SIZE + 'px';
   block.style.position = 'absolute';
 
-  // block.style.background = blockDesc[blockOpts.blockType].background;
   block.style.color = blockDesc[blockOpts.blockType].color;
-  block.innerHTML = blockDesc[blockOpts.blockType].char;
+  block.textContent = blockDesc[blockOpts.blockType].char;
+
+  if (blockDesc[blockOpts.blockType].isBold) {
+    block.style.fontWeight = 'bold';
+  }
+
+  if (blockOpts.blockType === 'WALL' || blockOpts.blockType === 'WALL_2') {
+    block.style.background = blockDesc[blockOpts.blockType].background;
+  }
 
   block.className = 'block ' + blockOpts.blockType.toLowerCase();
   block.id = 'block-' + blockId++;
 
+  if (blockOpts.occupied) {
+    switch (blockOpts.occupent) {
+      case 'PLAYER':
+        block.style.color = blockDesc['PLAYER'].color;
+        block.innerHTML = blockDesc['PLAYER'].char;
+        break;
+    }
+  }
+
+  if (blockOpts.blockType === 'LAVA') {
+    if (Math.random() > 0.5) {
+      block.innerHTML = blockDesc[blockOpts.blockType].altChar
+    }
+  }
+
   return block;
 }
+
+
 
 function render() {
   console.time('render');
@@ -448,11 +511,11 @@ function loop() {
 
   render();
   
-  // window.requestAnimationFrame(loop);
+  window.requestAnimationFrame(loop);
 }
 
 
 dung.tiles = generateMap();
 window.requestAnimationFrame(loop);
 
-// setTimeout(end, 15000);
+setTimeout(end, 15000);
