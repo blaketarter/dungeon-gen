@@ -9,7 +9,7 @@ let player = {};
 let game = {
   over: 0,
   score: 0,
-  level: 10,
+  level: 1,
 };
 
 function randomBetween(min,max) {
@@ -30,33 +30,52 @@ const groundTypes = ['GROUND', /*'GROUND_2',*/ 'LAVA', /*'DIRT'*/];
 const blockDesc = {
   GROUND: {
     color: '#666666',
+    background: '#222222',
+    char: '%'
   },
   GROUND_2: {
     color: '#566778',
+    background: '#222222',
+    char: '%'
   },
   BURNT_GROUND: {
     color: '#555555',
+    background: '#222222',
+    char: '@'
   },
   LAVA: {
     color: '#FF5722',
+    background: '#FF6655',
+    char: '~'
   },
   DIRT: {
     color: '#795548',
+    background: '#222222',
   },
   WALL: {
     color: '#333333',
+    background: '#222222',
+    char: '#'
   },
   WALL_2: {
     color: '#224444',
+    background: '#222222',
+    char: '#'
   },
   ROOM_FLOOR: {
     color: '#566778',
+    background: '#222222',
+    char: '*'
   },
   DOOR: {
     color: '#795548',
+    background: '#222222',
+    char: '^'
   },
   CHEST: {
     color: '#FB0',
+    background: '#222222',
+    char: '='
   }
 };
 
@@ -164,7 +183,7 @@ function generateMap() {
 
     let wallIndex = firstWall;
 
-    for (let i = 0, ii = 5; i < ii; i++) {
+    for (let i = 0, ii = randomBetween(2, 10); i < ii; i++) {
       if (!dungeon[wallIndex]) {
         break;
       }
@@ -392,7 +411,11 @@ function makeBlock(blockOpts) {
   block.style.height = SPRITE_SIZE + 'px';
   block.style.width = SPRITE_SIZE + 'px';
   block.style.position = 'absolute';
-  block.style.background = blockDesc[blockOpts.blockType].color;
+
+  // block.style.background = blockDesc[blockOpts.blockType].background;
+  block.style.color = blockDesc[blockOpts.blockType].color;
+  block.innerHTML = blockDesc[blockOpts.blockType].char;
+
   block.className = 'block ' + blockOpts.blockType.toLowerCase();
   block.id = 'block-' + blockId++;
 
